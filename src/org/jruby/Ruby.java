@@ -162,6 +162,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+import org.jruby.RubyInstanceConfig.TargetBackend;
+import org.jruby.ir.targets.dalvik.DalvikCompiler;
 
 /**
  * The Ruby object represents the top-level of a JRuby "instance" in a given VM.
@@ -727,9 +729,13 @@ public final class Ruby {
         ASTInspector inspector = new ASTInspector();
         inspector.inspect(node);
 
+        if (config.getTargetBackend() == TargetBackend.DALVIK) {
+            System.out.println("Dalvik entry point");
+        }
         return tryCompile(node, cachedClassName, classLoader, inspector, dump);
+        
     }
-
+    
     private Script tryCompile(Node node, String cachedClassName, JRubyClassLoader classLoader, ASTInspector inspector, boolean dump) {
         Script script = null;
         try {

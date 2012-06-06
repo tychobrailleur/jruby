@@ -163,6 +163,8 @@ public class Options {
     public static final Option<Boolean> JI_NEWSTYLEEXTENSION = bool(JAVA_INTEGRATION, "ji.newStyleExtension", false, "Extend Java classes without using a proxy object.");
     public static final Option<Boolean> JI_OBJECTPROXYCACHE = bool(JAVA_INTEGRATION, "ji.objectProxyCache", true, "Cache Java object wrappers between calls.");
 
+    public static final Option<String> TARGET_BACKEND = string(MISCELLANEOUS, "target.backend", new String[]{"jvm", "dalvik"}, "jvm,", "Set target backend. jvm = Java; dalvik = Dalvik.");
+    
     public static final Option[] PROPERTIES = _loadedOptions.toArray(new Option[0]);
     
     private static Option<String> string(Category category, String name, String[] options, String defval, String description) {
