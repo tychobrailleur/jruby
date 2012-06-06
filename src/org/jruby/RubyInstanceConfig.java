@@ -88,9 +88,7 @@ public class RubyInstanceConfig {
         samplingEnabled = SafePropertyAccessor.getBoolean("jruby.sampling.enabled", false);
 
         String compatString = Options.COMPAT_VERSION.load();
-        String targetString = Options.TARGET_BACKEND.load();
         compatVersion = CompatVersion.getVersionFromString(compatString);
-        targetBackend = targetBackend.JVM;
         if (compatVersion == null) {
             error.println("Compatibility version `" + compatString + "' invalid; use 1.8, 1.9, or 2.0. Using 1.8.");
             compatVersion = CompatVersion.RUBY1_8;
@@ -155,8 +153,6 @@ public class RubyInstanceConfig {
         samplingEnabled = parentConfig.samplingEnabled;
         compatVersion = parentConfig.compatVersion;
         compileMode = parentConfig.getCompileMode();
-        targetBackend = parentConfig.getTargetBackend();
-                
         jitLogging = parentConfig.jitLogging;
         jitDumping = parentConfig.jitDumping;
         jitLoggingVerbose = parentConfig.jitLoggingVerbose;

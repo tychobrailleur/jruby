@@ -76,6 +76,7 @@ public class Options {
     public static final Option<Boolean> COMPILE_INLINEDYNCALLS = bool(COMPILER, "compile.inlineDyncalls", false, "Emit method lookup + invoke inline in bytecode.");
     public static final Option<Boolean> COMPILE_FASTMASGN = bool(COMPILER, "compile.fastMasgn", false, "Return true from multiple assignment instead of a new array.");
     public static final Option<Boolean> COMPILE_INVOKEDYNAMIC = bool(COMPILER, "compile.invokedynamic", true, "Use invokedynamic on Java 7+.");
+    public static final Option<String> COMPILE_BACKEND = string(COMPILER, "compile.backend", new String[]{"JVM", "DALVIK"}, "JVM,", "Set target backend. JVM = Java; DALVIK = Android.");
     
     public static final Option<Integer> INVOKEDYNAMIC_MAXFAIL = integer(INVOKEDYNAMIC, "invokedynamic.maxfail", 1000, "Maximum call site failures after which to inline cache.");
     public static final Option<Integer> INVOKEDYNAMIC_MAXPOLY = integer(INVOKEDYNAMIC, "invokedynamic.maxpoly", 2, "Maximum polymorphism of PIC binding.");
@@ -163,8 +164,6 @@ public class Options {
     public static final Option<Boolean> JI_NEWSTYLEEXTENSION = bool(JAVA_INTEGRATION, "ji.newStyleExtension", false, "Extend Java classes without using a proxy object.");
     public static final Option<Boolean> JI_OBJECTPROXYCACHE = bool(JAVA_INTEGRATION, "ji.objectProxyCache", true, "Cache Java object wrappers between calls.");
 
-    public static final Option<String> TARGET_BACKEND = string(MISCELLANEOUS, "target.backend", new String[]{"jvm", "dalvik"}, "jvm,", "Set target backend. jvm = Java; dalvik = Dalvik.");
-    
     public static final Option[] PROPERTIES = _loadedOptions.toArray(new Option[0]);
     
     private static Option<String> string(Category category, String name, String[] options, String defval, String description) {
