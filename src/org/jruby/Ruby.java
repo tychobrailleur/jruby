@@ -78,6 +78,7 @@ import org.jruby.ir.IRManager;
 import org.jruby.ir.IRScope;
 import org.jruby.ir.interpreter.Interpreter;
 import org.jruby.ir.targets.JVMVisitor;
+import org.jruby.ir.targets.dalvik.DalvikCompiler;
 import org.jruby.javasupport.JavaSupport;
 import org.jruby.javasupport.util.RuntimeHelpers;
 import org.jruby.management.BeanManager;
@@ -729,10 +730,20 @@ public final class Ruby {
         inspector.inspect(node);
 
         if (config.getTargetBackend() == TargetBackend.DALVIK) {
-            System.out.println("Dalvik entry point");
+            return tryCompileDex(node);
         }
         
         return tryCompile(node, cachedClassName, classLoader, inspector, dump);
+    }
+    
+    private Script tryCompileDex(Node node) {
+        String filename = node.getPosition().getFile();
+        String classname = JavaNameMangler.mangledFilenameForStartupClasspath(filename);
+
+        DalvikCompiler dalvikCompiler = new DalvikCompiler(classname, filename);
+        dalvikCompiler.startScript();
+
+        return null;
     }
     
     private Script tryCompile(Node node, String cachedClassName, JRubyClassLoader classLoader, ASTInspector inspector, boolean dump) {
