@@ -41,6 +41,7 @@ import org.jruby.runtime.profile.IProfileData;
 import java.util.ArrayList;
 import org.jruby.runtime.profile.ProfileData;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import org.jruby.runtime.scope.ManyVarsDynamicScope;
 
@@ -61,6 +62,7 @@ import org.jruby.runtime.backtrace.TraceType;
 import org.jruby.runtime.backtrace.TraceType.Gather;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.RecursiveComparator;
+import org.jruby.util.RubyDateFormat;
 import org.jruby.util.log.Logger;
 import org.jruby.util.log.LoggerFactory;
 
@@ -87,11 +89,10 @@ public final class ThreadContext {
     // Is this thread currently with in a function trace?
     private boolean isWithinTrace;
     
-    // Is this thread currently doing an defined? defined should set things like $!
-    private boolean isWithinDefined;
-    
     private RubyThread thread;
     private Fiber fiber;
+    // Cache format string because it is expensive to create on demand
+    private RubyDateFormat dateFormat;
     
     private RubyModule[] parentStack = new RubyModule[INITIAL_SIZE];
     private int parentIndex = -1;
@@ -280,6 +281,12 @@ public final class ThreadContext {
     
     public RubyThread getThread() {
         return thread;
+    }
+    
+    public RubyDateFormat getRubyDateFormat() {
+        if (dateFormat == null) dateFormat = new RubyDateFormat("-", Locale.US, runtime.is1_9());
+        
+        return dateFormat;
     }
     
     public void setThread(RubyThread thread) {
@@ -1172,24 +1179,6 @@ public final class ThreadContext {
         this.isWithinTrace = isWithinTrace;
     }
     
-    /**
-     * Is this thread actively in defined? at the moment.
-     *
-     * @return true if within defined?
-     */
-    public boolean isWithinDefined() {
-        return isWithinDefined;
-    }
-    
-    /**
-     * Set whether we are actively within defined? or not.
-     *
-     * @param isWithinDefined true if so
-     */
-    public void setWithinDefined(boolean isWithinDefined) {
-        this.isWithinDefined = isWithinDefined;
-    }
-
     /**
      * Return a binding representing the current call's state
      * @return the current binding

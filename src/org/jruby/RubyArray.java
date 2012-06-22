@@ -4179,7 +4179,9 @@ public class RubyArray extends RubyObject implements List, RandomAccess {
     }
 
     public Object set(int index, Object element) {
-        return store(index, JavaUtil.convertJavaToUsableRubyObject(getRuntime(), element));
+        Object previous = elt(index).toJava(Object.class);
+        store(index, JavaUtil.convertJavaToUsableRubyObject(getRuntime(), element));
+        return previous;
     }
 
     // TODO: make more efficient by not creating IRubyArray[]
