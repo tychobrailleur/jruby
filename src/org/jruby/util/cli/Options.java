@@ -77,6 +77,7 @@ public class Options {
     public static final Option<Boolean> COMPILE_FASTMASGN = bool(COMPILER, "compile.fastMasgn", false, "Return true from multiple assignment instead of a new array.");
     // TODO: turned off temporarily due to the lack of 100% working OpenJDK indy support
     public static final Option<Boolean> COMPILE_INVOKEDYNAMIC = bool(COMPILER, "compile.invokedynamic", false, "Use invokedynamic for optimizing Ruby code");
+    public static final Option<String> COMPILE_BACKEND = string(COMPILER, "compile.backend", new String[]{"JVM", "DALVIK"}, "JVM,", "Set target backend. JVM = Java; DALVIK = Android.");
     
     public static final Option<Integer> INVOKEDYNAMIC_MAXFAIL = integer(INVOKEDYNAMIC, "invokedynamic.maxfail", 1000, "Maximum call site failures after which to inline cache.");
     public static final Option<Integer> INVOKEDYNAMIC_MAXPOLY = integer(INVOKEDYNAMIC, "invokedynamic.maxpoly", 2, "Maximum polymorphism of PIC binding.");
