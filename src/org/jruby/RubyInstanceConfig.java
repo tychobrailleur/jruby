@@ -60,11 +60,6 @@ import org.jruby.exceptions.MainExitException;
 import org.jruby.embed.util.SystemPropertyCatcher;
 import org.jruby.runtime.Constants;
 import org.jruby.runtime.backtrace.TraceType;
-import org.jruby.runtime.profile.IProfileData;
-import org.jruby.runtime.profile.AbstractProfilePrinter;
-import org.jruby.runtime.profile.FlatProfilePrinter;
-import org.jruby.runtime.profile.GraphProfilePrinter;
-import org.jruby.runtime.profile.HtmlProfilePrinter;
 import org.jruby.runtime.load.LoadService;
 import org.jruby.runtime.load.LoadService19;
 import org.jruby.util.ClassCache;
@@ -468,20 +463,6 @@ public class RubyInstanceConfig {
         } else {
             return new ASTCompiler19();
         }
-    }
-    
-    public AbstractProfilePrinter makeDefaultProfilePrinter(IProfileData profileData) {
-        if (profilingMode == ProfilingMode.FLAT) {
-            return new FlatProfilePrinter(profileData.getResults());
-        }
-        else if (profilingMode == ProfilingMode.GRAPH) {
-            return new GraphProfilePrinter(profileData.getResults());
-        }
-        else if (profilingMode == ProfilingMode.HTML){
-            return new HtmlProfilePrinter(profileData.getResults());
-        }
-
-        return null;
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -912,13 +893,9 @@ public class RubyInstanceConfig {
     public String getRecordSeparator() {
         return recordSeparator;
     }
-    
-    public void setSafeLevel(int safeLevel) {
-        this.safeLevel = safeLevel;
-    }
 
     public int getSafeLevel() {
-        return safeLevel;
+        return 0;
     }
 
     public ClassCache getClassCache() {
@@ -930,11 +907,6 @@ public class RubyInstanceConfig {
     }
 
     public String getInPlaceBackupExtension() {
-        return inPlaceBackupExtension;
-    }
-
-    @Deprecated
-    public String getInPlaceBackupExtention() {
         return inPlaceBackupExtension;
     }
 
@@ -1233,8 +1205,6 @@ public class RubyInstanceConfig {
     private boolean hardExit = false;
     private boolean disableGems = false;
     private boolean updateNativeENVEnabled = true;
-    
-    private int safeLevel = 0;
 
     private String jrubyHome;
     
@@ -1570,8 +1540,17 @@ public class RubyInstanceConfig {
     public static final boolean UPPER_CASE_PACKAGE_NAME_ALLOWED = Options.JI_UPPER_CASE_PACKAGE_NAME_ALLOWED.load();
     
     
-    public static final boolean USE_INVOKEDYNAMIC =
-            JAVA_VERSION == Opcodes.V1_7 && Options.COMPILE_INVOKEDYNAMIC.load();
+    public static final boolean USE_INVOKEDYNAMIC;
+    static {
+        if (JAVA_VERSION == Opcodes.V1_7) {
+            // if on Java 7, on by default unless turned off
+            // TODO: turned off temporarily due to the lack of 100% working OpenJDK indy support
+            USE_INVOKEDYNAMIC = Options.COMPILE_INVOKEDYNAMIC.load();
+        } else {
+            // if not on Java 7, on only if explicitly turned on
+            USE_INVOKEDYNAMIC = Options.COMPILE_INVOKEDYNAMIC.load() && Options.COMPILE_INVOKEDYNAMIC.isSpecified();
+        }
+    }
     
     // max times an indy call site can fail before it goes to simple IC
     public static final int MAX_FAIL_COUNT = Options.INVOKEDYNAMIC_MAXFAIL.load();
@@ -1613,6 +1592,7 @@ public class RubyInstanceConfig {
     public static final boolean LOG_EXCEPTIONS = Options.LOG_EXCEPTIONS.load();
     public static final boolean LOG_BACKTRACES = Options.LOG_BACKTRACES.load();
     public static final boolean LOG_CALLERS = Options.LOG_CALLERS.load();
+    public static final boolean LOG_WARNINGS = Options.LOG_WARNINGS.load();
     
     public static final boolean ERRNO_BACKTRACE = Options.ERRNO_BACKTRACE.load();
     
@@ -1644,5 +1624,14 @@ public class RubyInstanceConfig {
         } else {
             throw new RuntimeException("unsupported Java version: " + specVersion);
         }
+    }
+
+    @Deprecated
+    public void setSafeLevel(int safeLevel) {
+    }
+
+    @Deprecated
+    public String getInPlaceBackupExtention() {
+        return inPlaceBackupExtension;
     }
 }

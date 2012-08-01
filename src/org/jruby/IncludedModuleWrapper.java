@@ -52,9 +52,7 @@ import org.jruby.runtime.builtin.Variable;
  * 
  * @see org.jruby.RubyModule
  */
-public final class IncludedModuleWrapper extends RubyClass {
-    private final RubyModule delegate;
-
+public class IncludedModuleWrapper extends RubyClass {
     public IncludedModuleWrapper(Ruby runtime, RubyClass superClass, RubyModule delegate) {
         super(runtime, superClass, false);
         this.delegate = delegate;
@@ -133,12 +131,6 @@ public final class IncludedModuleWrapper extends RubyClass {
     @Override
     public RubyModule getNonIncludedClass() {
         return delegate;
-    }
-    
-    @Override
-    public RubyClass getRealClass() {
-        if (superClass == null) return null;
-        return superClass.getRealClass();
     }
 
     @Override
@@ -241,4 +233,7 @@ public final class IncludedModuleWrapper extends RubyClass {
     public IRubyObject getAutoloadConstant(Ruby runtime, String name) {
         return delegate.getAutoloadConstant(runtime, name);
     }
+
+    /** The module to which this include delegates. */
+    private final RubyModule delegate;
 }

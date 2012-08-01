@@ -484,6 +484,11 @@ public class InvocationLinker {
                 throw new IndirectBindingException("fixed arity required: " + method.getArity());
             }
 
+            // Arity must match, otherwise let the indirect method process errors
+            if (method.getArity().getValue() != siteArgCount) {
+                throw new IndirectBindingException("arity mismatch");
+            }
+
             // Only support 0..6 parameters
             if (method.getArity().getValue() > 6) {
                 throw new IndirectBindingException("target args > 6");
@@ -1187,13 +1192,10 @@ public class InvocationLinker {
                                 .constant(nullValue(newNativeReturn)));
             }
 
-            MethodHandle handler = exBinder.invoke(HANDLE_JAVA_EXCEPTION);
-
             nativeTarget = Binder
                     .from(site.type())
                     .drop(0, isStatic ? 3 : 2)
                     .filterReturn(returnFilter)
-                    .catchException(Throwable.class, handler)
                     .invoke(nativeTarget);
 
             method.setHandle(nativeTarget);
@@ -1208,23 +1210,6 @@ public class InvocationLinker {
     }
     
     private static final MethodHandle IS_JAVA_SUBCLASS = findStatic(InvocationLinker.class, "subclassProxyTest", methodType(boolean.class, Object.class));
-
-    public static void handleJavaException(Ruby runtime, Throwable exception) {
-        if (exception instanceof RaiseException) {
-            // allow RaiseExceptions to propagate
-            throw (RaiseException) exception;
-        } else if (exception instanceof Unrescuable) {
-            // allow "unrescuable" flow-control exceptions to propagate
-            if (exception instanceof Error) {
-                throw (Error)exception;
-            } else if (exception instanceof RuntimeException) {
-                throw (RuntimeException)exception;
-            }
-        }
-        throw RaiseException.createNativeRaiseException(runtime, exception);
-    }
-    
-    private static final MethodHandle HANDLE_JAVA_EXCEPTION = findStatic(InvocationLinker.class, "handleJavaException", methodType(void.class, Ruby.class, Throwable.class));
     
     private static Object nullValue(Class type) {
         if (type == boolean.class || type == Boolean.class) return false;

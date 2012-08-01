@@ -123,7 +123,7 @@ public class JavaField extends JavaAccessibleObject {
 
     @JRubyMethod
     public IRubyObject value(ThreadContext context, IRubyObject object) {
-        Ruby runtime = context.getRuntime();
+        Ruby runtime = context.runtime;
 
         Object javaObject = null;
         if (!Modifier.isStatic(field.getModifiers())) {
@@ -213,7 +213,7 @@ public class JavaField extends JavaAccessibleObject {
         return getRuntime().newString(field.getName());
     }
     
-    protected AccessibleObject accessibleObject() {
+    public AccessibleObject accessibleObject() {
         return field;
     }
 }
