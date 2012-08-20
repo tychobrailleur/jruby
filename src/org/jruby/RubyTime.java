@@ -846,7 +846,27 @@ public class RubyTime extends RubyObject {
         return this;
     }
     
-    /* Time class methods */
+    @JRubyMethod(name = "round", optional = 1, compat = RUBY1_9)
+    public RubyTime round(ThreadContext context, IRubyObject[] args) {
+        int ndigits = args.length == 0 ? 0 : RubyNumeric.num2int(args[0]);
+        // There are only 1_000_000_000 nanoseconds in 1 second,
+        // so there is no need to keep more than 9 digits
+        if (ndigits > 9) {
+            ndigits = 9;
+        } else if (ndigits < 0) {
+            throw context.getRuntime().newArgumentError("negative ndigits given");
+        }
+        
+        RubyTime newTime = new RubyTime(getRuntime(), getMetaClass(), this.dt);
+        long millis = newTime.dt.getMillis();
+        double rounded = Math.round(millis * 1000000 / Math.pow(10, 9 - ndigits))
+                * Math.pow(10, 9 - ndigits);
+        newTime.dt = newTime.dt.withMillis((long) rounded / 1000000);
+        
+        return newTime;
+    }
+
+   /* Time class methods */
     
     public static IRubyObject s_new(IRubyObject recv, IRubyObject[] args, Block block) {
         Ruby runtime = recv.getRuntime();
@@ -1089,9 +1109,9 @@ public class RubyTime extends RubyObject {
         }
  
         if (args.length == 10) {
-	    if(args[8] instanceof RubyBoolean) {
-	        isDst = ((RubyBoolean)args[8]).isTrue();
-	    }
+            if (args[8] instanceof RubyBoolean) {
+                isDst = ((RubyBoolean) args[8]).isTrue();
+            }
             args = new IRubyObject[] { args[5], args[4], args[3], args[2], args[1], args[0], runtime.getNil() };
         } else {
             // MRI accepts additional wday argument which appears to be ignored.
@@ -1220,7 +1240,7 @@ public class RubyTime extends RubyObject {
             if (runtime.is1_9() && fractionalUSecGiven) {
                 double micros = RubyNumeric.num2dbl(args[6]);
                 double nanos = micros * 1000;
-                time.dt = dt.withMillis(dt.getMillis() + Math.round(micros / 1000));
+                time.dt = dt.withMillis(dt.getMillis() + (long) (micros / 1000));
                 time.setNSec((long)(nanos % 1000000));
             } else {
                 int usec = int_args[4] % 1000;

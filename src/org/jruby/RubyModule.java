@@ -1234,9 +1234,10 @@ public class RubyModule extends RubyObject {
             }
         }
 
+        putMethod(name, new AliasMethod(this, method, oldName));
+
         invalidateCoreClasses();
         invalidateCacheDescendants();
-        putMethod(name, new AliasMethod(this, method, oldName));
     }
 
     public synchronized void defineAliases(List<String> aliases, String oldName) {
@@ -3536,8 +3537,11 @@ public class RubyModule extends RubyObject {
      * Define an autoload. ConstantMap holds UNDEF for the name as an autoload marker.
      */
     protected void defineAutoload(String name, IAutoloadMethod loadMethod) {
-        storeConstant(name, RubyObject.UNDEF);
-        getAutoloadMapForWrite().put(name, new Autoload(loadMethod));
+        Autoload existingAutoload = getAutoloadMap().get(name);
+        if (existingAutoload == null || existingAutoload.getValue() == null) {
+            storeConstant(name, RubyObject.UNDEF);
+            getAutoloadMapForWrite().put(name, new Autoload(loadMethod));
+        }
     }
     
     /**
