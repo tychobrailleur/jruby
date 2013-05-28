@@ -462,7 +462,7 @@ public class RubyBigDecimal extends RubyNumeric {
     
     private static IRubyObject getVpRubyObjectWithPrec19Inner(ThreadContext context, RubyRational r, long precision, boolean must) {
         RubyRational orig = null;
-        IRubyObject numerator = null;
+        
         while (true) {
             IRubyObject value;
             boolean div;
@@ -474,12 +474,12 @@ public class RubyBigDecimal extends RubyNumeric {
             }
                 
             if (div) {
-                numerator = r.numerator(context);
+                IRubyObject numerator = r.numerator(context);
                 RubyBigDecimal pv = getVpValueWithPrec19(context, numerator, -1, must);
                 
                 if (pv == null) cannotBeCoerced(context, r, must);
                 
-                value = pv.div19(context, r.denominator(context)); // FIXME: This should propagate precision
+                value = pv.op_div(context, r.denominator(context), context.runtime.newFixnum(precision));
             } else {
                 value = orig;
             }
@@ -495,13 +495,12 @@ public class RubyBigDecimal extends RubyNumeric {
     private static RubyBigDecimal getVpValueWithPrec19(ThreadContext context, IRubyObject value, long precision, boolean must) {
         while (true) {
             if (value instanceof RubyFloat) {
-//                if (precision < 0) return unableToCoerceWithoutPrec(context, value, must);
                 if (precision > Long.MAX_VALUE) cannotBeCoerced(context, value, must);
             
                 value = getVpRubyObjectWithPrec19Inner(context, (RubyRational) ((RubyFloat) value).to_r(context), precision, must); // MRI uses built-in
                 continue;
             } else if (value instanceof RubyRational) {
-                if (precision < 0) return unableToCoerceWithoutPrec(context, value, must);
+                if (precision < 0 && !context.runtime.is2_0()) return unableToCoerceWithoutPrec(context, value, must);
                 
                 value = getVpRubyObjectWithPrec19Inner(context, (RubyRational) value, precision, must);
                 continue;
@@ -1049,15 +1048,32 @@ public class RubyBigDecimal extends RubyNumeric {
     public IRubyObject op_quo(ThreadContext context, IRubyObject other) {
         // regular division with some default precision
         // TODO: proper algorithm to set the precision
-        return op_div(context, other, getRuntime().newFixnum(200));
+        return convertDivResult(context, other, 
+                op_div(context, other, getRuntime().newFixnum(200)));
     }
 
     @JRubyMethod(name = {"/", "quo"}, compat = CompatVersion.RUBY1_9)
     public IRubyObject op_quo19(ThreadContext context, IRubyObject other) {
+        if (other instanceof RubyRational) throw getRuntime().newTypeError("Rational can't be coerced into BigDecimal");
+        
+        other = getVpValue19(context, other, true);
+        // regular division with some default precision
+        // TODO: proper algorithm to set the precision
+        return convertDivResult(context, other, 
+                op_div(context, other, getRuntime().newFixnum(200)));
+    }
+    
+    @JRubyMethod(name = {"/", "quo"}, compat = CompatVersion.RUBY2_0)
+    public IRubyObject op_quo20(ThreadContext context, IRubyObject other) {
         other = getVpValue19(context, other, true);
         // regular division with some default precision
         // TODO: proper algorithm to set the precision
         return op_div(context, other, getRuntime().newFixnum(200));
+    }
+    
+    private IRubyObject convertDivResult(ThreadContext context, IRubyObject other, IRubyObject result) {
+        if (other instanceof RubyFloat && result instanceof RubyBigDecimal) ((RubyBigDecimal)result).convertToFloat();
+        return result;        
     }
     
     @JRubyMethod(name = "div", compat = CompatVersion.RUBY1_8)
