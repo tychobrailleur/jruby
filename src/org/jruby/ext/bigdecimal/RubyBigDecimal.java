@@ -461,35 +461,11 @@ public class RubyBigDecimal extends RubyNumeric {
     }
     
     private static IRubyObject getVpRubyObjectWithPrec19Inner(ThreadContext context, RubyRational r, long precision, boolean must) {
-        RubyRational orig = null;
-        
-        while (true) {
-            IRubyObject value;
-            boolean div;
-            if (orig == null) {
-                orig = r;
-                div = true;
-            } else {
-                div = orig != r;
-            }
-                
-            if (div) {
-                IRubyObject numerator = r.numerator(context);
-                RubyBigDecimal pv = getVpValueWithPrec19(context, numerator, -1, must);
-                
-                if (pv == null) cannotBeCoerced(context, r, must);
-                
-                value = pv.op_div(context, r.denominator(context), context.runtime.newFixnum(precision));
-            } else {
-                value = orig;
-            }
+        long numerator = RubyNumeric.num2long(r.numerator(context));
+        long denominator = RubyNumeric.num2long(r.denominator(context));
             
-            if (value instanceof RubyFloat) value = ((RubyFloat) value).to_r(context);            
-
-            if (!(value instanceof RubyRational)) return value;
-
-            r = (RubyRational) value;
-        }
+        return new RubyBigDecimal(context.runtime, 
+                BigDecimal.valueOf(numerator).divide(BigDecimal.valueOf(denominator)));
     }
     
     private static RubyBigDecimal getVpValueWithPrec19(ThreadContext context, IRubyObject value, long precision, boolean must) {
@@ -497,7 +473,8 @@ public class RubyBigDecimal extends RubyNumeric {
             if (value instanceof RubyFloat) {
                 if (precision > Long.MAX_VALUE) cannotBeCoerced(context, value, must);
             
-                value = getVpRubyObjectWithPrec19Inner(context, (RubyRational) ((RubyFloat) value).to_r(context), precision, must); // MRI uses built-in
+                RubyFloat f = (RubyFloat)value;
+                value = new RubyBigDecimal(context.runtime, BigDecimal.valueOf(f.getDoubleValue()));
                 continue;
             } else if (value instanceof RubyRational) {
                 if (precision < 0 && !context.runtime.is2_0()) return unableToCoerceWithoutPrec(context, value, must);
